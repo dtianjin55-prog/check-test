@@ -1,1 +1,240 @@
-index.html
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>面接対策｜伊勢崎・地域創生 38問テスト</title>
+
+<link rel="manifest" href="manifest.json">
+
+<style>
+body{font-family:system-ui,"Yu Gothic",sans-serif;margin:0;background:#f4f6f9;color:#222}
+header{
+  background:linear-gradient(135deg,#13315c,#0f7b8a);
+  color:#fff;
+  padding:18px;
+  font-size:1.2rem;
+  box-shadow:0 2px 6px rgba(0,0,0,.25);
+}
+main{padding:20px}
+.card{
+  background:#fff;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+  margin-bottom:20px;
+  transition:transform .25s ease, box-shadow .25s ease;
+  border-left:6px solid #0f7b8a;
+}
+.card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 6px 16px rgba(0,0,0,.18);
+}
+.btn{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  font-size:0.95rem;
+  cursor:pointer;
+  margin:8px 0;
+  width:100%;
+  font-weight:600;
+  letter-spacing:0.4px;
+}
+.primary{
+  background:linear-gradient(135deg,#0f7b8a,#0aa0b5);
+  color:#fff;
+}
+.secondary{
+  background:#f7f7f7;
+  border:1px solid #ddd;
+  color:#333;
+}
+h2{
+  margin-top:0;
+  border-bottom:2px solid #eee;
+  padding-bottom:8px;
+}
+p{line-height:1.6}
+small{color:#555}
+
+@media(max-width:600px){
+  .card{padding:16px}
+  h2{font-size:1.1rem}
+  body{font-size:0.95rem}
+}
+</style>
+</head>
+
+<body>
+<header>面接対策｜伊勢崎・地域創生 38問テスト（タイマーなし）</header>
+<main id="app" aria-live="polite"></main>
+
+<script>
+// =========================
+// 進捗保存・弱点保存
+// =========================
+function saveProgress(){
+  localStorage.setItem("interview_progress", idx);
+}
+function loadProgress(){
+  const saved = localStorage.getItem("interview_progress");
+  if(saved !== null){
+    idx = parseInt(saved, 10);
+  }
+}
+
+let weak = [];
+function loadWeak(){
+  const saved = JSON.parse(localStorage.getItem("weak_list") || "[]");
+  weak = saved;
+}
+
+// =========================
+// QAデータ（あなたが貼った 1〜38問）
+// =========================
+const QA = [
+  /* ★★★ ダイゴさんが貼った 1〜38問のデータをここにそのまま入れてください ★★★ */
+];
+
+// =========================
+// 出題ロジック
+// =========================
+let idx = 0;
+const app = document.getElementById("app");
+
+// 読み上げ機能
+function readText(){
+  const d = QA[idx];
+  const text = `質問。${d.q}。深掘り質問。${d.probe}`;
+  const uttr = new SpeechSynthesisUtterance(text);
+  uttr.lang = "ja-JP";
+  uttr.rate = 1.05;
+  uttr.pitch = 1.0;
+  speechSynthesis.speak(uttr);
+}
+function readModel(){
+  const d = QA[idx];
+  const uttr = new SpeechSynthesisUtterance(d.model);
+  uttr.lang = "ja-JP";
+  uttr.rate = 1.0;
+  uttr.pitch = 0.95;
+  speechSynthesis.speak(uttr);
+}
+function stopReading(){
+  speechSynthesis.cancel();
+}
+
+// 質問画面
+function renderQuestion(){
+  const d = QA[idx];
+  app.innerHTML = `
+    <div class="card">
+      <h2>Q${d.no}. ${d.q}</h2>
+      <p><b>分野：</b>${d.cat} ／ <b>難度：</b>${d.level}</p>
+      <p><b>深掘り質問：</b>${d.probe}</p>
+      <p><small>まずは「結論→理由→具体例」で声に出して答えてみてください。</small></p>
+
+      <button class="btn secondary" onclick="showHint()">ヒントを見る</button>
+      <button class="btn primary" onclick="showAnswer()">模範解答を見る</button>
+      <button class="btn secondary" onclick="next()">次の問題へ進む</button>
+
+      <button class="btn secondary" onclick="readText()">読み上げる</button>
+      <button class="btn secondary" onclick="stopReading()">読み上げ停止</button>
+
+      <button class="btn secondary" onclick="randomStart()">ランダム出題</button>
+      <button class="btn secondary" onclick="reviewWeak()">弱点だけ復習する</button>
+      <button class="btn secondary" onclick="showCategoryMenu()">分野別で出題する</button>
+    </div>
+  `;
+}
+
+// ヒント
+function showHint(){
+  const d = QA[idx];
+  const hint = `
+    <p><b>回答の骨格：</b>${d.skeleton}</p>
+    <p><b>評価ポイント：</b>${d.point}</p>
+    <p><b>注意点：</b>${d.caution}</p>
+  `;
+  const card = app.querySelector(".card");
+  const oldHint = card.querySelector(".hint");
+  if(oldHint) oldHint.remove();
+  const div = document.createElement("div");
+  div.className = "hint";
+  div.innerHTML = hint;
+  card.appendChild(div);
+}
+
+// 模範解答
+function showAnswer(){
+  const d = QA[idx];
+
+  // 弱点登録
+  loadWeak();
+  if(!weak.includes(idx)){
+    weak.push(idx);
+    localStorage.setItem("weak_list", JSON.stringify(weak));
+  }
+
+  app.innerHTML = `
+    <div class="card">
+      <h2>Q${d.no}. ${d.q}</h2>
+      <p><b>分野：</b>${d.cat} ／ <b>難度：</b>${d.level}</p>
+      <p><b>深掘り質問：</b>${d.probe}</p>
+      <hr>
+      <p><b>回答の骨格：</b>${d.skeleton}</p>
+      <p><b>詳しい模範解答：</b>${d.model}</p>
+      <p><b>評価ポイント：</b>${d.point}</p>
+      <p><b>注意点：</b>${d.caution}</p>
+
+      <button class="btn primary" onclick="next()">次の問題へ</button>
+      <button class="btn secondary" onclick="renderQuestion()">もう一度考える</button>
+
+      <button class="btn secondary" onclick="readModel()">模範解答を読み上げる</button>
+      <button class="btn secondary" onclick="stopReading()">読み上げ停止</button>
+    </div>
+  `;
+}
+
+// 次へ
+function next(){
+  idx++;
+  saveProgress();
+
+  if(idx >= QA.length){
+    app.innerHTML = `
+      <div class="card">
+        <h2>全38問終了</h2>
+        <p>お疲れさまでした。</p>
+      </div>
+    `;
+  }else{
+    renderQuestion();
+  }
+}
+
+// ランダム出題
+function randomStart(){
+  idx = Math.floor(Math.random() * QA.length);
+  renderQuestion();
+}
+
+// 弱点復習
+function reviewWeak(){
+  loadWeak();
+  if(weak.length === 0){
+    app.innerHTML = `
+      <div class="card">
+        <h2>弱点はまだありません</h2>
+        <p>模範解答を見た問題が弱点として登録されます。</p>
+      </div>
+    `;
+    return;
+  }
+  idx = weak[Math.floor(Math.random() * weak.length)];
+  renderQuestion();
+}
+
+// 分野別メニュー
+function showCategory
