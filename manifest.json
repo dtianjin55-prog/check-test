@@ -1,1 +1,9 @@
-
+{
+  "name": "面接対策アプリ",
+  "short_name": "面接対策",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#13315c",
+  "icons": []
+}
