@@ -91,19 +91,15 @@ function loadWeak(){
 }
 
 // =========================
-// QAデータ（あなたが貼った 1〜38問）
+// ★★★ QAデータをここに入れる ★★★
 // =========================
 const QA = [
-  /* ★★★ ダイゴさんが貼った 1〜38問のデータをここにそのまま入れてください ★★★ */
+  /* ダイゴさんが貼った 1〜38問のデータをここにそのまま入れてください */
 ];
 
 // =========================
-// 出題ロジック
-// =========================
-let idx = 0;
-const app = document.getElementById("app");
-
 // 読み上げ機能
+// =========================
 function readText(){
   const d = QA[idx];
   const text = `質問。${d.q}。深掘り質問。${d.probe}`;
@@ -124,6 +120,12 @@ function readModel(){
 function stopReading(){
   speechSynthesis.cancel();
 }
+
+// =========================
+// 出題ロジック
+// =========================
+let idx = 0;
+const app = document.getElementById("app");
 
 // 質問画面
 function renderQuestion(){
@@ -170,7 +172,6 @@ function showHint(){
 function showAnswer(){
   const d = QA[idx];
 
-  // 弱点登録
   loadWeak();
   if(!weak.includes(idx)){
     weak.push(idx);
@@ -237,7 +238,35 @@ function reviewWeak(){
 }
 
 // 分野別メニュー
-function showCategory
+function showCategoryMenu(){
+  const cats = [...new Set(QA.map(q => q.cat))];
+  app.innerHTML = `
+    <div class="card">
+      <h2>分野別出題</h2>
+      ${cats.map(c => `<button class="btn secondary" onclick="startCategory('${c}')">${c}</button>`).join("")}
+      <button class="btn secondary" onclick="renderQuestion()">戻る</button>
+    </div>
+  `;
+}
+
+// 分野別出題
+function startCategory(cat){
+  const list = QA.filter(q => q.cat === cat);
+  const d = list[Math.floor(Math.random() * list.length)];
+  idx = QA.indexOf(d);
+  renderQuestion();
+}
+
+// 初期表示
+loadProgress();
+renderQuestion();
+
+// =========================
+// PWA Service Worker 登録
+// =========================
 if("serviceWorker" in navigator){
   navigator.serviceWorker.register("sw.js");
 }
+</script>
+</body>
+</html>
