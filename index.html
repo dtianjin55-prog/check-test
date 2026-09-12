@@ -238,3 +238,6 @@ function reviewWeak(){
 
 // 分野別メニュー
 function showCategory
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js");
+}
